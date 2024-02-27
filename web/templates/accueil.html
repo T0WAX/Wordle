@@ -1,0 +1,449 @@
+{% extends "index.html" %}
+{% block head %}
+    <link rel="stylesheet" href="../static/accueil.css"/>
+    <title>Wordle DELUXE</title>
+{% endblock %}
+{% block body %}
+<div class = "corps">
+    {% if current_user.is_authenticated %}
+        <div id="progress-box-position">
+            <div id="progress-box">
+                <div id="username">
+                    {{session['username']}}
+                </div>
+                <div id="level">
+                    Niv. {{lvl}}
+                </div>
+                <div id="progress-bar">
+                    <div id="current-progress" style="width:{{L_info_xp[1]/L_info_xp[2]*100}}%;"></div>
+                </div>
+                <div id="progress-data">
+                    {{progress}}%
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <!-- Flash -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <p>{{ msg }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class = "erreur">
+        {% block accueil %}
+        {% endblock %}
+    </div>
+    {% if mode_de_jeu == 'classique' %}
+        <table>
+            {% for i in range(nb_essais[0]) %}
+                <tr>
+                    {% for j in range(nb_lettres) %}
+                        {% if liste_etat_lettres[i][j] == '2' %}
+                            <td style="background-color: green;">{{liste_mot_propose[i][j]}}</td>
+                        {% elif liste_etat_lettres[i][j] == '1' %}
+                            <td style="background-color: gold;">{{liste_mot_propose[i][j]}}</td>
+                        {% else %}
+                            <td>{{liste_mot_propose[i][j]}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="proposition">
+            {% set win = '2'*nb_lettres | int %}
+            {% if liste_etat_lettres[nb_essais[0]-nb_essais[-1]-1] == win %}
+                <form method="POST" action="/rejouer">
+                    <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                    <button class="bouton">Rejouer</button>  
+                </form>
+                <p style="color: green;">Vous avez gagné</p>
+            {% else %}
+                {% if nb_essais[-1]==0 %}
+                    <form method="POST" action="/rejouer">
+                        <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                        <button class="bouton">Rejouer</button>  
+                    </form>
+                    <p style="color: red;">Vous avez perdu</p>
+                    <h2>Le mot était : {{mot_cherche}}</h1>
+                
+                {% else %}
+                    <form method="POST" action="/accueil">
+                        <label>
+                            <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" maxlength="{{nb_lettres}}">
+                            <span></span>
+                            <script>
+                                const input = document.querySelector('input');
+                                const counter = document.querySelector('label span');
+                                const maxLength = input.getAttribute('maxlength');
+
+                                var test = false;
+                                input.addEventListener('input', event => {
+                                    test = true;
+                                    const valueLength = event.target.value.length;
+                                    const leftCharLength = maxLength - valueLength;
+
+                                    if (leftCharLength < 0) return;
+                                    
+                                    if (leftCharLength ==0){
+                                        counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                    }
+
+                                    else if (leftCharLength ==1){
+                                        counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                    }
+                                    else{
+                                        counter.innerText = leftCharLength + ' lettres restantes à saisir !';
+                                    }
+                                    
+                                });
+                                if (test == false){
+                                    counter.innerText = maxLength + ' lettres restantes à saisir !';
+                                }
+                            </script>
+                            <button class="bouton">Valider</button> 
+                        </label> 
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if mode_de_jeu == 'survie' %}
+        <table>
+            {% for i in range(nb_essais[0]) %}
+                <tr>
+                    {% for j in range(nb_lettres) %}
+                        {% if liste_etat_lettres[i][j] == '2' %}
+                            <td style="background-color: green;">{{liste_mot_propose[i][j]}}</td>
+                        {% elif liste_etat_lettres[i][j] == '1' %}
+                            <td style="background-color: gold;">{{liste_mot_propose[i][j]}}</td>
+                        {% else %}
+                            <td>{{liste_mot_propose[i][j]}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="proposition">
+            {% set win = '2'*nb_lettres | int %}
+            {% if liste_etat_lettres[nb_essais[0]-nb_essais[-1]-1] == win %}
+                <form method="POST" action="/rejouer">
+                    <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                    <button class="bouton">Continuer</button>  
+                </form>
+                <p style="color: green;">Bien joué !</p>
+                {% set score = score_survie[-1]- score_survie[-2] %}
+                <p style="color: green;">Vous gagnez {{score}} points</p>
+            {% else %}
+                {% if vie ==0 %}
+                    <form method="POST" action="/rejouer">
+                        <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                        <button class="bouton">Rejouer</button>
+                        <p style="color: red;">Vous n'avez plus de vie !</p>
+                        <h2>Le mot était : {{mot_cherche}}</h1>  
+                    </form>
+                {% else %}
+                    {% if nb_essais[-1]==0 %}
+                        <form method="POST" action="/rejouer">
+                            <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                            <button class="bouton">Continuer</button>  
+                        </form>
+                        <p style="color: red;">Dommage !</p>
+                        <p style="color: red;">Vous perdez une vie</p>
+                        <h2>Le mot était : {{mot_cherche}}</h1>
+                    
+                    {% else %}
+                        <form method="POST" action="/accueil">
+                            <label>
+                                <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" maxlength="{{nb_lettres}}">
+                                <span></span>
+                                <script>
+                                    const input = document.querySelector('input');
+                                    const counter = document.querySelector('label span');
+                                    const maxLength = input.getAttribute('maxlength');
+
+                                    var test = false;
+                                    input.addEventListener('input', event => {
+                                        test = true;
+                                        const valueLength = event.target.value.length;
+                                        const leftCharLength = maxLength - valueLength;
+
+                                        if (leftCharLength < 0) return;
+                                        
+                                        if (leftCharLength ==0){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+
+                                        else if (leftCharLength ==1){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+                                        else{
+                                            counter.innerText = leftCharLength + ' lettres restantes à saisir !';
+                                        }
+                                        
+                                    });
+                                    if (test == false){
+                                        counter.innerText = maxLength + ' lettres restantes à saisir !';
+                                    }
+                                </script>
+                                <button class="bouton">Valider</button> 
+                            </label> 
+                        </form>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="survie">
+            <div class="vie">
+                {% if vie != 0 %}
+                    <img src="../static/Survie/Vie/vie{{vie}}.png">
+                {% endif %}
+            </div>
+            <div class="score" style="margin-top: 10px;">
+                {% set strscore = score_survie[-1] | string %}
+                {% for chiffre in strscore %}
+                    <img src="../static/Survie/Score/{{chiffre}}.png">
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if mode_de_jeu == 'big50' %}
+        <table>
+            {% for i in range(nb_essais[0]) %}
+                <tr>
+                    {% for j in range(nb_lettres) %}
+                        {% if liste_etat_lettres[i][j] == '2' %}
+                            <td style="background-color: green;">{{liste_mot_propose[i][j]}}</td>
+                        {% elif liste_etat_lettres[i][j] == '1' %}
+                            <td style="background-color: gold;">{{liste_mot_propose[i][j]}}</td>
+                        {% else %}
+                            <td>{{liste_mot_propose[i][j]}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="proposition">
+            {% if nb_essais_big50[-1] != 0 %}
+                {% set win = '2'*nb_lettres | int %}
+                {% if liste_etat_lettres[nb_essais[0]-nb_essais[-1]-1] == win %}
+                    <form method="POST" action="/rejouer">
+                        <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                        <button class="bouton">Continuer</button>  
+                    </form>
+                    <p style="color: green;">Vous avez gagné</p>
+                {% else %}
+                    {% if nb_essais[-1]==0 %}
+                        <form method="POST" action="/rejouer">
+                            <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                            <button class="bouton">Continuer</button>  
+                        </form>
+                        <p style="color: red;">Vous n'avez pas trouvé le mot</p>
+                        <h2>Le mot était : {{mot_cherche}}</h1>
+                    
+                    {% else %}
+                        <form method="POST" action="/accueil">
+                            <label>
+                                <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" maxlength="{{nb_lettres}}">
+                                <span></span>
+                                <script>
+                                    const input = document.querySelector('input');
+                                    const counter = document.querySelector('label span');
+                                    const maxLength = input.getAttribute('maxlength');
+
+                                    var test = false;
+                                    input.addEventListener('input', event => {
+                                        test = true;
+                                        const valueLength = event.target.value.length;
+                                        const leftCharLength = maxLength - valueLength;
+
+                                        if (leftCharLength < 0) return;
+                                        
+                                        if (leftCharLength ==0){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+
+                                        else if (leftCharLength ==1){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+                                        else{
+                                            counter.innerText = leftCharLength + ' lettres restantes à saisir !';
+                                        }
+                                        
+                                    });
+                                    if (test == false){
+                                        counter.innerText = maxLength + ' lettres restantes à saisir !';
+                                    }
+                                </script>
+                                <button class="bouton">Valider</button> 
+                            </label> 
+                        </form>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <form method="POST" action="/rejouer">
+                    <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                    <button class="bouton">Rejouer</button>  
+                </form>
+                <p style="color: red;"> La partie est terminée </p>
+                <h2>Le mot était : {{mot_cherche}}</h1>
+            {% endif %}
+        </div>
+        <div class="big50">
+            <div class="vie">
+                {% if nb_essais_big50[-1]>=30 %}
+                    {% set strnb_essais = nb_essais_big50[-1] | string %}
+                    {% for chiffre in strnb_essais %}
+                        <img src="../static/BIG50/Vert/{{chiffre}}.png">
+                    {% endfor %}
+                {% elif nb_essais_big50[-1]>=10 %}
+                    {% set strnb_essais = nb_essais_big50[-1] | string %}
+                    {% for chiffre in strnb_essais %}
+                        <img src="../static/BIG50/Orange/{{chiffre}}.png">
+                    {% endfor %}
+                {% else %}
+                    {% set strnb_essais = nb_essais_big50[-1] | string %}
+                    {% for chiffre in strnb_essais %}
+                        <img src="../static/BIG50/Rouge/{{chiffre}}.png">
+                        {% endfor %}
+                {% endif %}
+            </div>
+            <div class="score" style="margin-top: 10px;">
+                {% set strscore = score_big50 | string %}
+                {% for chiffre in strscore %}
+                    <img src="../static/BIG50/Score/{{chiffre}}.png">
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if mode_de_jeu == 'clm' %}
+        <table>
+            {% for i in range(nb_essais[0]) %}
+                <tr>
+                    {% for j in range(nb_lettres) %}
+                        {% if liste_etat_lettres[i][j] == '2' %}
+                            <td style="background-color: green;">{{liste_mot_propose[i][j]}}</td>
+                        {% elif liste_etat_lettres[i][j] == '1' %}
+                            <td style="background-color: gold;">{{liste_mot_propose[i][j]}}</td>
+                        {% else %}
+                            <td>{{liste_mot_propose[i][j]}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="proposition">
+            {% if timer1 != '00:00' %}
+                {% set win = '2'*nb_lettres | int %}
+                {% if liste_etat_lettres[nb_essais[0]-nb_essais[-1]-1] == win %}
+                    <form method="POST" action="/rejouer">
+                        <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                        <button class="bouton">Continuer</button>  
+                    </form>
+                    <p style="color: green;">Bien joué !</p>
+                {% else %}
+                    {% if nb_essais[-1]==0 %}
+                        <form method="POST" action="/rejouer">
+                            <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                            <button class="bouton">Continuer</button>  
+                        </form>
+                        <p style="color: red;">Vous avez perdu</p>
+                        <h2>Le mot était : {{mot_cherche}}</h1>
+                    
+                    {% else %}
+                        <form method="POST" action="/accueil">
+                            <label>
+                                <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" maxlength="{{nb_lettres}}">
+                                <span></span>
+                                <script>
+                                    const input = document.querySelector('input');
+                                    const counter = document.querySelector('label span');
+                                    const maxLength = input.getAttribute('maxlength');
+
+                                    var test = false;
+                                    input.addEventListener('input', event => {
+                                        test = true;
+                                        const valueLength = event.target.value.length;
+                                        const leftCharLength = maxLength - valueLength;
+
+                                        if (leftCharLength < 0) return;
+                                        
+                                        if (leftCharLength ==0){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+
+                                        else if (leftCharLength ==1){
+                                            counter.innerText = leftCharLength + ' lettre restante à saisir !';
+                                        }
+                                        else{
+                                            counter.innerText = leftCharLength + ' lettres restantes à saisir !';
+                                        }
+                                        
+                                    });
+                                    if (test == false){
+                                        counter.innerText = maxLength + ' lettres restantes à saisir !';
+                                    }
+                                </script>
+                                <button class="bouton">Valider</button> 
+                            </label> 
+                        </form>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <form method="POST" action="/rejouer">
+                    <input class="input" type="mot_propose" name="mot_propose" placeholder="Votre Proposition" autofocus="" disabled>
+                    <button class="bouton">Rejouer</button>  
+                </form>
+                <p style="color: red;"> La partie est terminée </p>
+                <h2>Le mot était : {{mot_cherche}}</h1>
+            {% endif %}
+        </div>
+        <div class="clm">
+            <div class="vie">
+                <div>
+                    <span id="time" style="font-size:2rem">{{timer1}}</span>
+                    <script>
+                        function startTimer(duration, display) 
+                        {
+                            var timer = duration, minutes, seconds;
+                            setInterval(function () {
+                                if (--timer < 0) {
+                                    timer = 0;
+                                    minutes = parseInt(timer / 60, 10);
+                                    seconds = parseInt(timer % 60, 10);
+                                    
+                                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                                    seconds = seconds < 10 ? "0" + seconds : seconds;
+                                }
+                                else{
+                                    minutes = parseInt(timer / 60, 10);
+                                    seconds = parseInt(timer % 60, 10);
+                                    
+                                    minutes = minutes < 10 ? "0" + minutes : minutes;
+                                    seconds = seconds < 10 ? "0" + seconds : seconds;
+                                }
+                                display.textContent = minutes + ":" + seconds;
+
+
+                            }, 1000);
+                        }
+
+                        window.onload = function () {
+                            var fiveMinutes = {{ timer2|safe }},
+                                display = document.querySelector('#time');
+                            startTimer(fiveMinutes, display);
+                        };
+                    </script>
+                </div>
+            </div>
+            <div class="score" style="margin-top: 10px;">
+                {% set strscore = score_clm | string %}
+                {% for chiffre in strscore %}
+                    <img src="../static/Survie/Score/{{chiffre}}.png">
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

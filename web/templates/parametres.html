@@ -1,0 +1,124 @@
+{% extends "index.html" %}
+{% block head %}
+    <link rel="stylesheet" href="../static/parametres.css"/>
+    <title>Paramètre - Worlde DELUXE</title>
+{% endblock %}
+
+{% block body %}
+<body>
+    <div class="corps">
+        <form method="POST" action="/parametres">
+            <div class = "choix_mode_jeu">
+                <table>
+                    <tr>
+                        <td>
+                            <h3>Choix du mode de jeu  :</h3>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="select">
+                                <select name="select_mode_de_jeu" required>
+                                    <option value="classique" >Classique</option>
+                                    <option value="clm" >Contre la montre</option>
+                                    <option value="survie" >Survie</option>
+                                    <option value="big50" >Big 50</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td>
+                            <br><p>Si vous avez choisi le mode de jeu classique alors choisissez le nombre de lettres du mot à trouver </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>ainsi que le nombre d'essais que vous souhaitez avoir puis cliquer sur Jouer.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>Sinon cliquez directement sur Jouer.</p>
+                        </td>
+                    </tr>
+                        
+                </table>
+            </div>
+            
+            <div class = "option_classique">
+                <div class = "choix_nblettres">
+                    <table>
+                        <tr>
+                            <td>
+                                <h3>Choix du nombre de lettres  :</h3>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="select">
+                                    <select name="select_lettres" required >
+                                        <option value="4" >4</option>
+                                        <option value="5" >5</option>
+                                        <option selected="6" >6</option>
+                                        <option value="7" >7</option>
+                                        <option value="8" >8</option>
+                                        <option value="9" >9</option>
+                                        <option value="10" >10</option>
+                                        <option value="11" >11</option>
+                                        <option value="12" >12</option>
+                                        <option value="13" >13</option>
+                                        <option value="14" >14</option>
+                                    </select>
+                                </div>   
+                            </td>  
+                        </tr>
+                    </table>
+                </div>
+                <div class = "choix_nbessais">
+                    <table>
+                        <tr>
+                            <td>
+                                <h3>Choix du nombre d'essais  :</h3>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="select">
+                                    <select name="select_essais" required>
+                                        <option value="3" >3</option>
+                                        <option value="4" >4</option>
+                                        <option value="5" >5</option>
+                                        <option selected="6" >6</option>
+                                        <option value="7" >7</option>
+                                        <option value="8" >8</option>
+                                        <option value="9" >9</option>
+                                        <option value="10" >10</option>
+                                    </select>
+                                </div>   
+                            </td>  
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class ="nombre_joueur">
+                <div class ="solo">
+                    <table>
+                        <tr><td><h3>Singleplayer</h3></td></tr>
+                        <tr><td><img src="../static/V1parametres/solo.png"></td></tr>
+                        <tr><td><button name ="solo" class ="boutton_solo">Jouer</button></td></tr>
+                    </table>
+                </div>
+                <div class ="multi">
+                    <table>
+                        <tr><td><h3>Multiplayer</h3></td></tr>
+                        <tr><td><img src="../static/V1parametres/multi.png"></td></tr>
+                        <tr><td><button name="multi"class ="boutton_multi">Jouer</button></td></tr>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
